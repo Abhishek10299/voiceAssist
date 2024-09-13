@@ -38,7 +38,8 @@ function App() {
 
       if (command.includes("go to") || command.includes("navigate to")) {
         if (command.includes("home")) navigate("/");
-        else if (command.includes("products")) navigate("/products");
+        else if (command.includes("products") || command.includes("product"))
+          navigate("/products");
         else if (command.includes("about")) navigate("/about");
         else if (command.includes("cart")) navigate("/cart");
       } else if (command.includes("read products")) {

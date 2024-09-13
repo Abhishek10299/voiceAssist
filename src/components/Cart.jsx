@@ -9,6 +9,7 @@ function Cart() {
   const cart = useSelector((state) => state.cart.cart);
   const dispatch = useDispatch();
   const [isCheckout, setIsCheckout] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -26,23 +27,29 @@ function Cart() {
       const command = event.results[0][0].transcript.toLowerCase();
       console.log("Command received: ", command);
 
-      if (command.includes("checkout")) {
+      if (command.includes("checkout") || command.includes("check out")) {
         dispatch(clearCart()); // Clear the cart
         setIsCheckout(true);
         speak("Proceeding to checkout. Please fill in your details.");
       } else if (isCheckout) {
-        if (command.includes("Enter name")) {
-          const name = command.split("Enter name ")[1];
+        if (command.includes("enter name")) {
+          const name = command.split("enter name ")[1];
           setFormData((prev) => ({ ...prev, name }));
           speak(`Name filled as ${name}`);
-        } else if (command.includes("Enter address")) {
-          const address = command.split("Enter address ")[1];
+        } else if (command.includes("enter address")) {
+          const address = command.split("enter address ")[1];
           setFormData((prev) => ({ ...prev, address }));
           speak(`Address filled as ${address}`);
-        } else if (command.includes("Enter payment")) {
-          const paymentMethod = command.split("Enter payment ")[1];
+        } else if (command.includes("enter payment")) {
+          const paymentMethod = command.split("enter payment ")[1];
           setFormData((prev) => ({ ...prev, paymentMethod }));
           speak(`Payment method set to ${paymentMethod}`);
+        } else if (
+          command.includes("confirm checkout") ||
+          command.includes("confirm check out")
+        ) {
+          setIsConfirmed(true);
+          speak("Checkout confirmed. Thank you for your purchase!");
         }
       }
     };
@@ -58,50 +65,68 @@ function Cart() {
     return (
       <div className="container mx-auto p-8">
         <h1 className="text-4xl font-bold text-center mb-8 text-gray-900">
-          Checkout Form
+          Checkout
         </h1>
-        <form className="max-w-lg mx-auto">
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">Name</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border rounded-lg"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              disabled
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Address
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border rounded-lg"
-              value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
-              disabled
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Payment Method
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border rounded-lg"
-              value={formData.paymentMethod}
-              onChange={(e) =>
-                setFormData({ ...formData, paymentMethod: e.target.value })
-              }
-              disabled
-            />
-          </div>
-        </form>
+
+        {/* Render the form only if checkout is not confirmed */}
+        {!isConfirmed ? (
+          <form className="max-w-lg mx-auto">
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">Name</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border rounded-lg"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                disabled
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Address
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border rounded-lg"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                disabled
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Payment Method
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border rounded-lg"
+                value={formData.paymentMethod}
+                onChange={(e) =>
+                  setFormData({ ...formData, paymentMethod: e.target.value })
+                }
+                disabled
+              />
+            </div>
+
+            {/* Confirm Checkout Button */}
+            <button
+              type="button" // Prevent form submission
+              onClick={() => setIsConfirmed(true)}
+              className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium mt-4 block mx-auto hover:bg-green-500 transition-colors duration-300"
+            >
+              Confirm Checkout
+            </button>
+          </form>
+        ) : (
+          // Show confirmation message after checkout is confirmed
+          <p className="text-center text-green-600 mt-4">
+            Checkout confirmed. Thank you for your purchase!
+          </p>
+        )}
       </div>
     );
   }
@@ -151,7 +176,8 @@ function Cart() {
               Total: {formatPrice(totalPrice)}
             </h2>
             <button
-              onClick={() => dispatch(clearCart())}
+              type="button"
+              onClick={() => setIsCheckout(true)}
               className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium mt-4 block mx-auto hover:bg-indigo-500 transition-colors duration-300"
             >
               Proceed to Checkout
